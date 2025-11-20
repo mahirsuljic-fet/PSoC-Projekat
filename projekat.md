@@ -8,27 +8,27 @@ Komunikacija između Raspberry Pi i FPGA će se odvijati putem nekog serijskog t
 # Hardver sa tabelom ulaza i izlaza
 | Upravljačke ploče       | Slika |
 | ----------------------- | ----- |
-| Raspberry Pi 4          | <img src="RaspberryPi4.jpg" alt="" width="200"/> |
-| Altera Cyclone 4 (FPGA) | <img src="AlteraCyclone4.png" alt="" width="200"/> |
-| ESP-01s                 | <img src="ESP-01s.jpg" alt="" width="200"/> |
+| Raspberry Pi 4          | <img src="slike/RaspberryPi4.jpg" width="200"/> |
+| Altera Cyclone 4 (FPGA) | <img src="slike/AlteraCyclone4.png" width="200"/> |
+| ESP-01s                 | <img src="slike/ESP-01s.jpg" width="200"/> |
 
 | Ulazi                             | Upravljačka ploča | Namjena                          | Slika |
 | --------------------------------- | ----------------- | -------------------------------- | ----- |
-| Ultrasonični senzor (HC-SR04P) x2 | FPGA              | Parking senzori                  | <img src="UltrasonicSenzor.jpg" alt="" width="200"/> |
-| Kamera (Logitech C512)            | Raspberry PI      | Detekcija znakova i video stream | <img src="Kamera.jpg" alt="" width="200"/> |
-| Infracrveni senzor x2             | FPGA              | Detekcija linija                 | <img src="InfracrveniSenzor.jpg" alt="" width="200"/> |
+| Ultrasonični senzor (HC-SR04P) x2 | FPGA              | Parking senzori                  | <img src="slike/UltrasonicSenzor.jpg" width="200"/> |
+| Kamera (Logitech C512)            | Raspberry PI      | Detekcija znakova i video stream | <img src="slike/Kamera.jpg" width="200"/> |
+| Infracrveni senzor x2             | FPGA              | Detekcija linija                 | <img src="slike/InfracrveniSenzor.jpg" width="200"/> |
 
 | Izlazi               | Upravljačka ploča | Namjena                  | Slika |
 | -------------------- | ----------------- | ------------------------ | ----- |
-| DC motori x4         | FPGA              | Kontrola kretanja        | <img src="DCMotori.jpg" alt="" width="200"/> |
-| Servo motori x2      | FPGA              | Kočnice                  | <img src="ServoMotor.jpg" alt="" width="200"/> |
-| Aktivni piezo buzzer | FPGA              | Zvučna signalizacija     | <img src="PiezoBuzzer.jpg" alt="" width="200"/> |
-| LED (nekoliko)       | FPGA              | Svjetlosna signalizacija | <img src="LEDs.jpg" alt="" width="200"/> |
+| DC motori x4         | FPGA              | Kontrola kretanja        | <img src="slike/DCMotori.jpg" width="200"/> |
+| Servo motori x2      | FPGA              | Kočnice                  | <img src="slike/ServoMotor.jpg" width="200"/> |
+| Aktivni piezo buzzer | FPGA              | Zvučna signalizacija     | <img src="slike/PiezoBuzzer.jpg" width="200"/> |
+| LED (nekoliko)       | FPGA              | Svjetlosna signalizacija | <img src="slike/LEDs.jpg" width="200"/> |
 
 | Dodatno                  | Upravljačka ploča | Namjena                  | Slika |
 | ------------------------ | ----------------- | ------------------------ | ----- |
-| DC motor driver L298N x2 | FPGA              | Kontrola motora          | <img src="MotorDriver.jpg" alt="" width="200"/> |
-| LED semafor              | ESP-01s           | Svjetlosna signalizacija | <img src="Semafor.jpg" alt="" width="200"/> |
+| DC motor driver L298N x2 | FPGA              | Kontrola motora          | <img src="slike/MotorDriver.jpg" width="200"/> |
+| LED semafor              | ESP-01s           | Svjetlosna signalizacija | <img src="slike/Semafor.jpg" width="200"/> |
 
 # Dijagram upravljanja
 ``` mermaid
