@@ -37,7 +37,7 @@ def motor_loop():
                 GPIO.output(pin, GPIO.HIGH if desired else GPIO.LOW)
                 last_pin_state[pin] = desired
 
-        time.sleep(0.01)  # fast loop, smooth response
+        time.sleep(0.05)
 
 threading.Thread(target=motor_loop, daemon=True).start()
 
