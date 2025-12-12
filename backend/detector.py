@@ -27,6 +27,9 @@ CAM_INDEX = 0
 WORK_WIDTH = 640
 WORK_HEIGHT = 480
 
+STOP_HOLD_ACTIVE = False
+STOP_HOLD_END = 0
+
 USE_ROI = False  # za detekciju samo unutar odredjene regije
 ROI = (200, 50, 440, 380)  # ima smisla samo ako je gornje True
 
@@ -187,10 +190,15 @@ def main():
                 last_stop_time = time.time()
                 print("[EVENT] STOP SIGN detected")
                 gpio_write(GPIO_STOP_PIN, True)
-                time.sleep(0.15)
-                gpio_write(GPIO_STOP_PIN, False)
+                STOP_HOLD_ACTIVE = True 
+                STOP_HOLD_END = time.time() + 3.0
                 stop_detected_once = True
 
+            if STOP_HOLD_ACTIVE and time.time() >= STOP_HOLD_END:
+                gpio_write(GPIO_STOP_PIN, False)
+                STOP_HOLD_ACTIVE = False 
+                print("[EVENT] STOP HOLD ended")
+                
             # detekcija crvenog svjetla
             hsv = cv2.cvtColor(roi_frame, cv2.COLOR_BGR2HSV)
             m1 = cv2.inRange(hsv, LOWER_RED1, UPPER_RED1)
