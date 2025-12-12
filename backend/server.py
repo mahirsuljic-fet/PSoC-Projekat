@@ -11,6 +11,7 @@ PIN_BWD = 27
 PIN_STOP = 22
 PIN_LEFT = 23
 PIN_RIGHT = 24
+FAILSAFE = 26
 
 PINS = [PIN_FWD, PIN_BWD, PIN_STOP, PIN_LEFT, PIN_RIGHT]
 
@@ -19,6 +20,10 @@ GPIO.setup(PINS, GPIO.OUT, initial=GPIO.LOW)
 
 motor_state = {"fwd": False, "bwd": False, "left": False, "right": False, "stop": False}
 state_lock = threading.Lock()
+last_move_time = time.time()
+
+last_heartbeat_time = time.time()  # vrijeme posljednjeg heartbeat-a
+HEARTBEAT_TIMEOUT = 0.3  # 300 ms
 
 def motor_loop():
     last_pin_state = {pin: False for pin in PINS}
@@ -45,10 +50,38 @@ def set_motor(cmd, value=True):
     with state_lock:
         motor_state[cmd] = value
 
+# ---------- Fail-safe heartbeat checker ----------
+def heartbeat_loop():
+    global last_heartbeat_time
+    while True:
+        now = time.time()
+        if now - last_heartbeat_time > HEARTBEAT_TIMEOUT:
+            # ako je > timeout, posalji na failsafe pin signal, zaustavi sve
+            with state_lock:
+                for key in motor_state:
+                    motor_state[key] = False
+            GPIO.output(FAILSAFE, GPIO.LOW)
+        time.sleep(0.01)
+
+threading.Thread(target=heartbeat_loop, daemon=True).start()
+
+@app.route("/heartbeat", methods=["POST"])
+def heartbeat():
+    global last_heartbeat_time
+    last_heartbeat_time = time.time()
+    return jsonify({"status": "ok"})
+
 @app.route("/forward/on")
 def forward_on():
+    global last_move_time
+    last_move_time = time.time()
     set_motor("fwd", True)
     return jsonify({"status": "forward ON"})
+
+@app.route("/is_moving")
+def is_moving():
+    moving = (time.time() - last_move_time) < 2
+    return jsonify({"moving": moving})
 
 @app.route("/forward/off")
 def forward_off():
@@ -67,6 +100,8 @@ def backward_off():
 
 @app.route("/left/on")
 def left_on():
+    global last_move_time
+    last_move_time = time.time()
     set_motor("left", True)
     return jsonify({"status": "left ON"})
 
@@ -77,6 +112,8 @@ def left_off():
 
 @app.route("/right/on")
 def right_on():
+    global last_move_time
+    last_move_time = time.time()
     set_motor("right", True)
     return jsonify({"status": "right ON"})
 
