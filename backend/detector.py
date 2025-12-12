@@ -127,7 +127,7 @@ last_stop_time = 0
 red_state = False
 stop_detected_once = False  # flag da STOP znak ne detektuje više puta dok auto ne krene
 
-FLASK_URL = "http://192.168.0.102:5000"  # <--- postavit na static ip kad bude bio
+FLASK_URL = "http://192.168.17.251:5000"  # <--- postavit na static ip kad bude bio
 
 def main():
     global last_stop_time, red_state, stop_detected_once

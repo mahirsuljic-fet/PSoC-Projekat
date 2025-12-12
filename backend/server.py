@@ -17,6 +17,7 @@ PINS = [PIN_FWD, PIN_BWD, PIN_STOP, PIN_LEFT, PIN_RIGHT]
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PINS, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(FAILSAFE, GPIO.OUT, initial=GPIO.LOW)
 
 motor_state = {"fwd": False, "bwd": False, "left": False, "right": False, "stop": False}
 state_lock = threading.Lock()
@@ -80,7 +81,7 @@ def forward_on():
 
 @app.route("/is_moving")
 def is_moving():
-    moving = (time.time() - last_move_time) < 2
+    moving = (time.time() - last_move_time) < 0.5
     return jsonify({"moving": moving})
 
 @app.route("/forward/off")
