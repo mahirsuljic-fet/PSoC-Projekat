@@ -2,20 +2,16 @@ package com.example.robotcontrolapp.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,11 +33,11 @@ fun ControlButton(
 ) {
     Box(
         modifier = modifier
-            .size(70.dp)
-            .clip(RoundedCornerShape(8.dp))
+            .size(80.dp)
+            .clip(RoundedCornerShape(12.dp))
             .background(
-                if (isPressed) ControlButtonActive.copy(alpha = 0.8f)
-                else ControlButtonInactive.copy(alpha = 0.5f)
+                if (isPressed) ControlButtonActive
+                else ControlButtonInactive
             )
             .pointerInput(Unit) {
                 detectTapGestures(
@@ -58,7 +54,7 @@ fun ControlButton(
             imageVector = icon,
             contentDescription = direction.value,
             tint = MaterialTheme.colorScheme.onPrimary,
-            modifier = Modifier.size(36.dp)
+            modifier = Modifier.size(40.dp)
         )
     }
 }
@@ -73,9 +69,8 @@ fun ControlPad(
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Up button
         ControlButton(
             icon = Icons.Default.KeyboardArrowUp,
             direction = Direction.FORWARD,
@@ -84,13 +79,12 @@ fun ControlPad(
             onRelease = onStop
         )
 
-        // Middle row: Left, Down, Right
         Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ControlButton(
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowLeft,
+                icon = Icons.Default.KeyboardArrowLeft,
                 direction = Direction.LEFT,
                 isPressed = currentDirection == Direction.LEFT,
                 onPress = { onDirectionChange(Direction.LEFT) },
@@ -106,7 +100,7 @@ fun ControlPad(
             )
 
             ControlButton(
-                icon = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                icon = Icons.Default.KeyboardArrowRight,
                 direction = Direction.RIGHT,
                 isPressed = currentDirection == Direction.RIGHT,
                 onPress = { onDirectionChange(Direction.RIGHT) },
