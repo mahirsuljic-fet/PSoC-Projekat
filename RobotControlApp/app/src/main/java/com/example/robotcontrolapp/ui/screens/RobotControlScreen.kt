@@ -1,6 +1,7 @@
 package com.example.robotcontrolapp.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -9,7 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.robotcontrolapp.ui.components.ActionButton
@@ -18,6 +23,10 @@ import com.example.robotcontrolapp.ui.theme.EmergencyRed
 import com.example.robotcontrolapp.ui.theme.StatusWarning
 import com.example.robotcontrolapp.viewmodel.RobotViewModel
 import com.example.robotcontrolapp.R
+import com.example.robotcontrolapp.ui.theme.EmergencyRedActive
+import com.example.robotcontrolapp.ui.theme.StatusWarningActive
+import com.example.robotcontrolapp.viewmodel.StopReason
+
 @Composable
 fun RobotControlScreen(
     viewModel: RobotViewModel,
@@ -52,8 +61,8 @@ fun RobotControlScreen(
                 ActionButton(
                     imageId = R.drawable.brake,
                     labelId = R.string.brake,
+                    color = if (uiState.isBrakeActive) EmergencyRedActive else EmergencyRed,
                     isActive = uiState.isBrakeActive,
-                    color = EmergencyRed,
                     onPress = { viewModel.activateBrake() },
                     onRelease = { viewModel.releaseBrake() }
                 )
@@ -61,8 +70,8 @@ fun RobotControlScreen(
                 ActionButton(
                     imageId = R.drawable.horn,
                     labelId = R.string.horn,
+                    color = if (uiState.isHornActive) StatusWarningActive else StatusWarning,
                     isActive = uiState.isHornActive,
-                    color = StatusWarning,
                     onPress = { viewModel.activateHorn() },
                     onRelease = { viewModel.releaseHorn() }
                 )
@@ -75,31 +84,50 @@ fun RobotControlScreen(
             )
         }
 
-        if (uiState.isConnected) {
-            Card(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(
-                    text = "Robot Status: ${if (uiState.status.moving) "Moving" else "Stopped"}",
-                    modifier = Modifier.padding(16.dp),
-                    style = MaterialTheme.typography.bodyLarge
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 20.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            if (!uiState.isConnected && uiState.errorMessage != null) {
+                InfoWhiteBox(
+                    message = uiState.errorMessage!!,
+                    isError = true
                 )
             }
-        }
 
-        uiState.errorMessage?.let { error ->
-            Snackbar(
-                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 80.dp),
-                action = {
-                    TextButton(onClick = { viewModel.clearError() }) {
-                        Text("OK")
-                    }
+            if (uiState.stopReason != StopReason.NONE) {
+                val stopMessage = when (uiState.stopReason) {
+                    StopReason.RED_LIGHT -> "Robot stopped: RED LIGHT DETECTED!"
+                    StopReason.STOP_SIGN -> "Robot stopped: STOP SIGN DETECTED!"
+                    StopReason.MANUAL_BRAKE -> "Robot stopped: MANUAL BRAKE APPLIED!"
+                    else -> ""
                 }
-            ) {
-                Text(error)
+
+                if (stopMessage.isNotEmpty()) {
+                    InfoWhiteBox(
+                        message = stopMessage,
+                        isError = false,
+                        onDismiss = { viewModel.handleStopReason(StopReason.NONE) }
+                    )
+                }
+            }
+
+            if (uiState.isConnected) {
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Text(
+                        text = "Robot Status: ${if (uiState.status.moving) "Moving" else "Stopped"}",
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+                }
             }
         }
     }
@@ -112,6 +140,44 @@ fun RobotControlScreen(
                 viewModel.toggleSettings()
             }
         )
+    }
+}
+
+@Composable
+fun InfoWhiteBox(
+    message: String,
+    isError: Boolean,
+    onDismiss: (() -> Unit)? = null
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth(0.95f)
+            .border(2.dp, if (isError) Color.Red else Color.Black, RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(8.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ){
+            Text(
+                text = message,
+                color = Color.Black,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+
+            if (onDismiss != null) {
+                TextButton(onClick = onDismiss, contentPadding = PaddingValues(start = 8.dp)) {
+                    Text("OK", color = Color.Blue, fontWeight = FontWeight.Black, fontSize = 15.sp)
+                }
+            }
+        }
     }
 }
 

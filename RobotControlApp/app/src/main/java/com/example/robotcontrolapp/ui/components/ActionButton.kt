@@ -31,10 +31,7 @@ fun ActionButton(
         modifier = modifier
             .size(80.dp)
             .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (isActive) color
-                else MaterialTheme.colorScheme.surfaceVariant
-            )
+            .background(color)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = {
