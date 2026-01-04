@@ -31,56 +31,47 @@ class RobotRepository {
         }
     }.flowOn(Dispatchers.IO)
 
-    suspend fun forwardOn(): Result<ControlResponse> {
-        return executeRequest { apiService.forwardOn() }
+    suspend fun forwardOn(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.forwardOn(seq) }
     }
 
-    suspend fun forwardOff(): Result<ControlResponse> {
-        return executeRequest { apiService.forwardOff() }
+    suspend fun forwardOff(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.forwardOff(seq) }
     }
 
-    suspend fun backwardOn(): Result<ControlResponse> {
-        return executeRequest { apiService.backwardOn() }
+    suspend fun backwardOn(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.backwardOn(seq) }
     }
 
-    suspend fun backwardOff(): Result<ControlResponse> {
-        return executeRequest { apiService.backwardOff() }
+    suspend fun backwardOff(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.backwardOff(seq) }
     }
 
-    suspend fun leftOn(): Result<ControlResponse> {
-        return executeRequest { apiService.leftOn() }
+    suspend fun leftOn(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.leftOn(seq) }
     }
 
-    suspend fun leftOff(): Result<ControlResponse> {
-        return executeRequest { apiService.leftOff() }
+    suspend fun leftOff(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.leftOff(seq) }
     }
 
-    suspend fun rightOn(): Result<ControlResponse> {
-        return executeRequest { apiService.rightOn() }
+    suspend fun rightOn(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.rightOn(seq) }
     }
 
-    suspend fun rightOff(): Result<ControlResponse> {
-        return executeRequest { apiService.rightOff() }
+    suspend fun rightOff(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.rightOff(seq) }
     }
 
     suspend fun stopAll(): Result<ControlResponse> {
         return executeRequest { apiService.stopAll() }
     }
-
-    suspend fun brakeOn(): Result<ControlResponse> {
-        return executeRequest { apiService.brakeOn() }
+    suspend fun hornOn(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.hornOn(seq) }
     }
 
-    suspend fun brakeOff(): Result<ControlResponse> {
-        return executeRequest { apiService.brakeOff() }
-    }
-
-    suspend fun hornOn(): Result<ControlResponse> {
-        return executeRequest { apiService.hornOn() }
-    }
-
-    suspend fun hornOff(): Result<ControlResponse> {
-        return executeRequest { apiService.hornOff() }
+    suspend fun hornOff(seq: Int): Result<ControlResponse> {
+        return executeRequest { apiService.hornOff(seq) }
     }
 
     fun getRobotStatusFlow(): Flow<Result<RobotStatus>> = flow {
