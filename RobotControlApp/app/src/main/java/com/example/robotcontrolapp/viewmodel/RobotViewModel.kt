@@ -10,24 +10,25 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
 
 enum class StopReason {
-    NONE, RED_LIGHT, STOP_SIGN, MANUAL_BRAKE
+    NONE, RED_LIGHT, STOP_SIGN
 }
 
 data class RobotUiState(
     val isConnected: Boolean = false,
     val status: RobotStatus = RobotStatus(),
     val currentDirection: Direction = Direction.STOP,
-    val isBrakeActive: Boolean = false,
     val isHornActive: Boolean = false,
     val errorMessage: String? = "App is not connected to the server. Please try changing the IP address or port in the settings.",
     val isLoading: Boolean = false,
     val showSettings: Boolean = false,
     val stopReason: StopReason = StopReason.NONE,
-    val currentIp: String = "192.168.1.100",
-    val currentPort: Int = 5000
+    val currentIp: String = "192.168.1.132  ",
+    val currentPort: Int = 5000,
+    val sequence: Int = 0
 )
 
 class RobotViewModel : ViewModel() {
@@ -70,13 +71,19 @@ class RobotViewModel : ViewModel() {
 
     fun sendCommand(direction: Direction) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(currentDirection = direction, stopReason = StopReason.NONE)
+            val seq = _uiState.updateAndGet {
+                it.copy(
+                    currentDirection = direction,
+                    stopReason = StopReason.NONE,
+                    sequence = it.sequence + 1
+                )
+            }.sequence
 
             val result = when (direction) {
-                Direction.FORWARD -> repository.forwardOn()
-                Direction.BACKWARD -> repository.backwardOn()
-                Direction.LEFT -> repository.leftOn()
-                Direction.RIGHT -> repository.rightOn()
+                Direction.FORWARD -> repository.forwardOn(seq)
+                Direction.BACKWARD -> repository.backwardOn(seq)
+                Direction.LEFT -> repository.leftOn(seq)
+                Direction.RIGHT -> repository.rightOn(seq)
                 Direction.STOP -> repository.stopAll()
             }
 
@@ -91,53 +98,52 @@ class RobotViewModel : ViewModel() {
     fun stopCommand() {
         viewModelScope.launch {
             val currentDir = _uiState.value.currentDirection
-            _uiState.value = _uiState.value.copy(currentDirection = Direction.STOP)
+
+            val seq = _uiState.updateAndGet {
+                it.copy(
+                    currentDirection = Direction.STOP,
+                    sequence = it.sequence + 1
+                )
+            }.sequence
 
             val result = when (currentDir) {
-                Direction.FORWARD -> repository.forwardOff()
-                Direction.BACKWARD -> repository.backwardOff()
-                Direction.LEFT -> repository.leftOff()
-                Direction.RIGHT -> repository.rightOff()
+                Direction.FORWARD -> repository.forwardOff(seq)
+                Direction.BACKWARD -> repository.backwardOff(seq)
+                Direction.LEFT -> repository.leftOff(seq)
+                Direction.RIGHT -> repository.rightOff(seq)
                 Direction.STOP -> repository.stopAll()
             }
             result.onFailure { setConnectionError() }
         }
     }
 
-    fun activateBrake() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isBrakeActive = true)
-            repository.brakeOn().onSuccess {
-                handleStopReason(StopReason.MANUAL_BRAKE)
-                _uiState.value = _uiState.value.copy(errorMessage = null, isConnected = true)
-            }.onFailure {
-                setConnectionError()
-            }
-        }
-    }
-
     fun activateHorn() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isHornActive = true)
-            repository.hornOn().onSuccess {
+            val seq = _uiState.updateAndGet {
+                it.copy(
+                    isHornActive = true,
+                    sequence = it.sequence + 1
+                )
+            }.sequence
+
+            repository.hornOn(seq).onSuccess {
                 _uiState.value = _uiState.value.copy(errorMessage = null, isConnected = true)
             }.onFailure {
                 setConnectionError()
             }
-        }
-    }
-
-    fun releaseBrake() {
-        viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isBrakeActive = false)
-            repository.brakeOff().onFailure { setConnectionError() }
         }
     }
 
     fun releaseHorn() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isHornActive = false)
-            repository.hornOff().onFailure { setConnectionError() }
+            val seq = _uiState.updateAndGet {
+                it.copy(
+                    isHornActive = false,
+                    sequence = it.sequence + 1
+                )
+            }.sequence
+
+            repository.hornOff(seq).onFailure { setConnectionError() }
         }
     }
 

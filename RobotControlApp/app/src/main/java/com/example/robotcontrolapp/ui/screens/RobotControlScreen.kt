@@ -59,15 +59,6 @@ fun RobotControlScreen(
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(24.dp)) {
                 ActionButton(
-                    imageId = R.drawable.brake,
-                    labelId = R.string.brake,
-                    color = if (uiState.isBrakeActive) EmergencyRedActive else EmergencyRed,
-                    isActive = uiState.isBrakeActive,
-                    onPress = { viewModel.activateBrake() },
-                    onRelease = { viewModel.releaseBrake() }
-                )
-
-                ActionButton(
                     imageId = R.drawable.horn,
                     labelId = R.string.horn,
                     color = if (uiState.isHornActive) StatusWarningActive else StatusWarning,
@@ -103,7 +94,6 @@ fun RobotControlScreen(
                 val stopMessage = when (uiState.stopReason) {
                     StopReason.RED_LIGHT -> "Robot stopped: RED LIGHT DETECTED!"
                     StopReason.STOP_SIGN -> "Robot stopped: STOP SIGN DETECTED!"
-                    StopReason.MANUAL_BRAKE -> "Robot stopped: MANUAL BRAKE APPLIED!"
                     else -> ""
                 }
 

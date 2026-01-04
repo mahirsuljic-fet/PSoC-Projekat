@@ -39,20 +39,20 @@ STOP_FRAMES_NEEDED = 3  # minimaln broj uzastopnih frame-ova da bi znak bio prep
 STOP_HOLD_SECONDS = 1.0  # koliko dugo zaustavljamo robot-a
 
 # konfiguracija detekcije crvenog svjetla
-LOWER_RED1 = np.array([0, 120, 120])
-UPPER_RED1 = np.array([10, 255, 255])
-LOWER_RED2 = np.array([160, 120, 120])
+LOWER_RED1 = np.array([0, 50, 50])
+UPPER_RED1 = np.array([15, 255, 255])
+LOWER_RED2 = np.array([150, 50, 50])
 UPPER_RED2 = np.array([179, 255, 255])
 
-RED_MIN_AREA = 20
-RED_MAX_AREA = 5000
-RED_MIN_BRIGHTNESS = 120
+RED_MIN_AREA = 5
+RED_MAX_AREA = 8000
+RED_MIN_BRIGHTNESS = 80
 
-LED_MAX_SIZE = 60
-CIRCULARITY_MIN = 0.3
+LED_MAX_SIZE = 80
+CIRCULARITY_MIN = 0.15
 
-RED_FRAMES_ON_NEEDED = 30
-RED_FRAMES_OFF_NEEDED = 30
+RED_FRAMES_ON_NEEDED = 10
+RED_FRAMES_OFF_NEEDED = 10
 
 GPIO_RED_PIN = 12  # pin na koji saljemo signal crvenog svjetla
 GPIO_STOP_PIN = 16  # pin na koji saljemo signal nakon detekcije stop znaka
@@ -130,7 +130,7 @@ last_stop_time = 0
 red_state = False
 stop_detected_once = False  # flag da STOP znak ne detektuje više puta dok auto ne krene
 
-FLASK_URL = "http://192.168.17.251:5000"  # <--- postavit na static ip kad bude bio
+FLASK_URL = "http://192.168.1.132:5000"  # <--- postavit na static ip kad bude bio
 
 def main():
     global last_stop_time, red_state, stop_detected_once
@@ -186,6 +186,7 @@ def main():
                 stop_detected_once = False
 
             # detekcija stop znaka
+            global STOP_HOLD_ACTIVE, STOP_HOLD_END
             if stop_confirmed and not stop_detected_once:
                 last_stop_time = time.time()
                 print("[EVENT] STOP SIGN detected")

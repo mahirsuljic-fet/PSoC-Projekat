@@ -1,5 +1,4 @@
 <resources>
     <string name="app_name">RobotControlApp</string>
     <string name="horn">horn</string>
-    <string name="brake">brake</string>
 </resources>
