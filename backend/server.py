@@ -1,4 +1,5 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
+from picamera2 import Picamera2
 import RPi.GPIO as GPIO
 import time
 import threading
@@ -12,12 +13,14 @@ PIN_STOP = 22
 PIN_LEFT = 23
 PIN_RIGHT = 24
 FAILSAFE = 26
+PIN_HORN = 17
 
 PINS = [PIN_FWD, PIN_BWD, PIN_STOP, PIN_LEFT, PIN_RIGHT]
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PINS, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(FAILSAFE, GPIO.OUT, initial=GPIO.LOW)
+GPIO.setup(PIN_HORN, GPIO.OUT, initial = GPIO.HIGH)
 
 motor_state = {"fwd": False, "bwd": False, "left": False, "right": False, "stop": False}
 state_lock = threading.Lock()
@@ -25,27 +28,28 @@ last_move_time = time.time()
 
 last_heartbeat_time = time.time()  # vrijeme posljednjeg heartbeat-a
 HEARTBEAT_TIMEOUT = 0.3  # 300 ms
+last_seq = -1
 
-def motor_loop():
-    last_pin_state = {pin: False for pin in PINS}
+def handle_header():
+    global last_seq 
+    seq = int(request.headers.get("sequence"))
+    if(seq > last_seq):
+        last_seq = seq
+        print(seq)
+        return True
+    return False
 
+picam = Picamera2()
+picam.configure(picam.create_video_configuration())
+picam.start()
+
+def gen():
     while True:
-        with state_lock:
-            active_pins = []
-            if motor_state["fwd"]: active_pins.append(PIN_FWD)
-            if motor_state["bwd"]: active_pins.append(PIN_BWD)
-            if motor_state["left"]: active_pins.append(PIN_LEFT)
-            if motor_state["right"]: active_pins.append(PIN_RIGHT)
-
-        for pin in PINS:
-            desired = pin in active_pins
-            if last_pin_state[pin] != desired:
-                GPIO.output(pin, GPIO.HIGH if desired else GPIO.LOW)
-                last_pin_state[pin] = desired
-
-        time.sleep(0.05)
-
-threading.Thread(target=motor_loop, daemon=True).start()
+        frame = picam.capture_array()
+        _, jpeg = cv2.imencode('.jpg', frame)
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' +
+               jpeg.tobytes() + b'\r\n')
 
 def set_motor(cmd, value=True):
     with state_lock:
@@ -76,7 +80,8 @@ def heartbeat():
 def forward_on():
     global last_move_time
     last_move_time = time.time()
-    set_motor("fwd", True)
+    if(handle_header()):
+        GPIO.output(PIN_FWD, GPIO.HIGH)
     return jsonify({"status": "forward ON"})
 
 @app.route("/is_moving")
@@ -86,48 +91,68 @@ def is_moving():
 
 @app.route("/forward/off")
 def forward_off():
-    set_motor("fwd", False)
+    if(handle_header()):
+        GPIO.output(PIN_FWD, GPIO.LOW)
     return jsonify({"status": "forward OFF"})
 
 @app.route("/backward/on")
 def backward_on():
-    set_motor("bwd", True)
+    if(handle_header()):
+        GPIO.output(PIN_BWD, GPIO.HIGH)
     return jsonify({"status": "backward ON"})
 
 @app.route("/backward/off")
 def backward_off():
-    set_motor("bwd", False)
+    if(handle_header()):
+        GPIO.output(PIN_BWD, GPIO.LOW)
     return jsonify({"status": "backward OFF"})
 
 @app.route("/left/on")
 def left_on():
     global last_move_time
     last_move_time = time.time()
-    set_motor("left", True)
+    if(handle_header()):
+        GPIO.output(PIN_LEFT, GPIO.HIGH)
     return jsonify({"status": "left ON"})
 
 @app.route("/left/off")
 def left_off():
-    set_motor("left", False)
+    if(handle_header()):
+        GPIO.output(PIN_LEFT, GPIO.LOW)
     return jsonify({"status": "left OFF"})
 
 @app.route("/right/on")
 def right_on():
     global last_move_time
     last_move_time = time.time()
-    set_motor("right", True)
+    if(handle_header()):
+        GPIO.output(PIN_RIGHT, GPIO.HIGH)
     return jsonify({"status": "right ON"})
 
 @app.route("/right/off")
 def right_off():
-    set_motor("right", False)
+    if(handle_header()):
+        GPIO.output(PIN_RIGHT, GPIO.LOW)
     return jsonify({"status": "right OFF"})
+    
+@app.route("/horn/on")
+def horn_on():
+    if(handle_header()):
+        GPIO.output(PIN_HORN, GPIO.HIGH)
+    return jsonify({"status": "horn ON"})
+    
+@app.route("/horn/off")
+def horn_off():
+    if(handle_header()):
+        GPIO.output(PIN_HORN, GPIO.LOW)
+    return jsonify({"status" : "horn OFF"})
 
 @app.route("/stop")
 def stop_all():
-    with state_lock:
-        for key in motor_state:
-            motor_state[key] = False
+    GPIO.output(PIN_FWD, GPIO.LOW)
+    GPIO.output(PIN_BWD, GPIO.LOW)
+    GPIO.output(PIN_LEFT, GPIO.LOW)
+    GPIO.output(PIN_RIGHT, GPIO.LOW)
     return jsonify({"status": "all stopped"})
 
 @app.route("/")

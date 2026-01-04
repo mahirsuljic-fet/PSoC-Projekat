@@ -30,13 +30,15 @@ WORK_HEIGHT = 480
 STOP_HOLD_ACTIVE = False
 STOP_HOLD_END = 0
 
+
 USE_ROI = False  # za detekciju samo unutar odredjene regije
 ROI = (200, 50, 440, 380)  # ima smisla samo ako je gornje True
 
 # STOP znak
 STOP_MIN_AREA = 1500  # minimalan povrsina u pixelima koju znak mora imat da bi bio detektovan
 STOP_FRAMES_NEEDED = 3  # minimaln broj uzastopnih frame-ova da bi znak bio prepoznat
-STOP_HOLD_SECONDS = 1.0  # koliko dugo zaustavljamo robot-a
+STOP_HOLD_SECONDS = 3.0  # koliko dugo zaustavljamo robot-a
+STOP_COOLDOWN_SECONDS = 8.0 # koliko dugo imamo za pokrenut se
 
 # konfiguracija detekcije crvenog svjetla
 LOWER_RED1 = np.array([0, 120, 120])
@@ -44,15 +46,15 @@ UPPER_RED1 = np.array([10, 255, 255])
 LOWER_RED2 = np.array([160, 120, 120])
 UPPER_RED2 = np.array([179, 255, 255])
 
-RED_MIN_AREA = 20
+RED_MIN_AREA = 5
 RED_MAX_AREA = 5000
-RED_MIN_BRIGHTNESS = 120
+RED_MIN_BRIGHTNESS = 30
 
-LED_MAX_SIZE = 60
+LED_MAX_SIZE = 80
 CIRCULARITY_MIN = 0.3
 
-RED_FRAMES_ON_NEEDED = 30
-RED_FRAMES_OFF_NEEDED = 30
+RED_FRAMES_ON_NEEDED = 10
+RED_FRAMES_OFF_NEEDED = 10
 
 GPIO_RED_PIN = 12  # pin na koji saljemo signal crvenog svjetla
 GPIO_STOP_PIN = 16  # pin na koji saljemo signal nakon detekcije stop znaka
@@ -125,15 +127,16 @@ if cascade.empty():
 stop_history = collections.deque(maxlen=STOP_FRAMES_NEEDED)
 red_on_history = collections.deque(maxlen=RED_FRAMES_ON_NEEDED)
 red_off_history = collections.deque(maxlen=RED_FRAMES_OFF_NEEDED)
+stop_cooldown_end = 0
 
 last_stop_time = 0
 red_state = False
 stop_detected_once = False  # flag da STOP znak ne detektuje više puta dok auto ne krene
 
-FLASK_URL = "http://192.168.17.251:5000"  # <--- postavit na static ip kad bude bio
+FLASK_URL = "http://192.168.1.132:5000"  # <--- postavit na static ip kad bude bio
 
 def main():
-    global last_stop_time, red_state, stop_detected_once
+    global last_stop_time, red_state, stop_detected_once, stop_cooldown_end
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--no-gui", action="store_true")
@@ -186,18 +189,37 @@ def main():
                 stop_detected_once = False
 
             # detekcija stop znaka
-            if stop_confirmed and not stop_detected_once:
+            # 1. Modify the STOP detection condition
+            # Added check: time.time() > stop_cooldown_end
+            global STOP_HOLD_ACTIVE, STOP_HOLD_END
+            if stop_confirmed and not stop_detected_once and time.time() > stop_cooldown_end:
                 last_stop_time = time.time()
                 print("[EVENT] STOP SIGN detected")
                 gpio_write(GPIO_STOP_PIN, True)
                 STOP_HOLD_ACTIVE = True 
-                STOP_HOLD_END = time.time() + 3.0
+                STOP_HOLD_END = time.time() + STOP_HOLD_SECONDS
                 stop_detected_once = True
 
+            # 2. Modify the STOP HOLD release logic
             if STOP_HOLD_ACTIVE and time.time() >= STOP_HOLD_END:
                 gpio_write(GPIO_STOP_PIN, False)
                 STOP_HOLD_ACTIVE = False 
-                print("[EVENT] STOP HOLD ended")
+                # Set the cooldown to start NOW for 5 seconds
+                stop_cooldown_end = time.time() + STOP_COOLDOWN_SECONDS
+                print(f"[EVENT] STOP HOLD ended. Cooldown active for {STOP_COOLDOWN_SECONDS}s")
+
+            # 3. Optional: Clean up the moving reset
+            # You might want to keep stop_detected_once = True until the cooldown ends
+            # to be doubly sure it doesn't flicker.
+            try:
+                r = requests.get(f"{FLASK_URL}/is_moving", timeout=0.1)
+                moving = r.json().get("moving", False)
+            except:
+                moving = False
+
+            # Only reset the flag if the car is moving AND the cooldown has passed
+            if moving and time.time() > stop_cooldown_end:
+                stop_detected_once = False
                 
             # detekcija crvenog svjetla
             hsv = cv2.cvtColor(roi_frame, cv2.COLOR_BGR2HSV)
@@ -242,12 +264,12 @@ def main():
                 if len(red_on_history) == RED_FRAMES_ON_NEEDED and all(red_on_history):
                     red_state = True
                     print("[EVENT] RED LED ON")
-                    gpio_write(GPIO_RED_PIN, True)
+                    #gpio_write(GPIO_RED_PIN, True)
             else:
                 if len(red_off_history) == RED_FRAMES_OFF_NEEDED and all(red_off_history):
                     red_state = False
                     print("[EVENT] RED LED OFF")
-                    gpio_write(GPIO_RED_PIN, False)
+                    #gpio_write(GPIO_RED_PIN, False)
 
             display = frame.copy()
             if USE_ROI:
