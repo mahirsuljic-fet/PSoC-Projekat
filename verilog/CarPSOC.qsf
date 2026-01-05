@@ -1,0 +1,91 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2013 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 64-Bit
+# Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+# Date created = 15:19:30  January 03, 2026
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		CarPSOC_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone II"
+set_global_assignment -name DEVICE EP2C5T144C8
+set_global_assignment -name TOP_LEVEL_ENTITY main
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "15:19:30  JANUARY 03, 2026"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name VERILOG_FILE servo.v
+set_global_assignment -name VERILOG_FILE test.v
+set_global_assignment -name VERILOG_FILE main.v
+set_global_assignment -name VERILOG_FILE parking_sensor.v
+set_global_assignment -name VERILOG_FILE ultrasonic.v
+set_global_assignment -name VERILOG_FILE motor_driver.v
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
+set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_location_assignment PIN_17 -to clk
+set_location_assignment PIN_40 -to buzzer
+set_location_assignment PIN_41 -to buzzer_in
+set_location_assignment PIN_121 -to bwd_in
+set_location_assignment PIN_120 -to fwd_in
+set_location_assignment PIN_125 -to left_in
+set_location_assignment PIN_122 -to right_in
+set_location_assignment PIN_99 -to m1_out[0]
+set_location_assignment PIN_100 -to m1_out[1]
+set_location_assignment PIN_101 -to m1_out[2]
+set_location_assignment PIN_103 -to m1_out[3]
+set_location_assignment PIN_32 -to m2_out[3]
+set_location_assignment PIN_31 -to m2_out[2]
+set_location_assignment PIN_30 -to m2_out[1]
+set_location_assignment PIN_28 -to m2_out[0]
+set_location_assignment PIN_133 -to stop_in
+set_location_assignment PIN_126 -to stoplight_in
+set_location_assignment PIN_129 -to stopsign_in
+set_location_assignment PIN_135 -to echo_fwd
+set_location_assignment PIN_134 -to trig_fwd
+set_location_assignment PIN_3 -to md_state[0]
+set_location_assignment PIN_7 -to md_state[1]
+set_location_assignment PIN_9 -to md_state[2]
+set_location_assignment PIN_136 -to trig_bwd2
+set_location_assignment PIN_139 -to trig_bwd1
+set_location_assignment PIN_137 -to echo_bwd2
+set_location_assignment PIN_141 -to echo_bwd1
+set_location_assignment PIN_143 -to ld_left
+set_location_assignment PIN_142 -to ld_right
+set_location_assignment PIN_118 -to failsafe_in
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

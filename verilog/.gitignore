@@ -1,0 +1,7 @@
+db
+output_files
+simulation
+incremental_db
+*.vcd
+servo.v
+test.v
