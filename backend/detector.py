@@ -133,7 +133,7 @@ last_stop_time = 0
 red_state = False
 stop_detected_once = False  # flag da STOP znak ne detektuje više puta dok auto ne krene
 
-FLASK_URL = "http://192.168.1.132:5000"  # <--- postavit na static ip kad bude bio
+FLASK_URL = "http://192.168.1.103:5000"  # <--- postavit na static ip kad bude bio
 
 def main():
     global last_stop_time, red_state, stop_detected_once, stop_cooldown_end
@@ -264,12 +264,12 @@ def main():
                 if len(red_on_history) == RED_FRAMES_ON_NEEDED and all(red_on_history):
                     red_state = True
                     print("[EVENT] RED LED ON")
-                    #gpio_write(GPIO_RED_PIN, True)
+                    gpio_write(GPIO_RED_PIN, True)
             else:
                 if len(red_off_history) == RED_FRAMES_OFF_NEEDED and all(red_off_history):
                     red_state = False
                     print("[EVENT] RED LED OFF")
-                    #gpio_write(GPIO_RED_PIN, False)
+                    gpio_write(GPIO_RED_PIN, False)
 
             display = frame.copy()
             if USE_ROI:

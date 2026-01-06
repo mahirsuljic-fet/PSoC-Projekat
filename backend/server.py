@@ -20,14 +20,14 @@ PINS = [PIN_FWD, PIN_BWD, PIN_STOP, PIN_LEFT, PIN_RIGHT]
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PINS, GPIO.OUT, initial=GPIO.LOW)
 GPIO.setup(FAILSAFE, GPIO.OUT, initial=GPIO.LOW)
-GPIO.setup(PIN_HORN, GPIO.OUT, initial = GPIO.HIGH)
+GPIO.setup(PIN_HORN, GPIO.OUT, initial = GPIO.LOW)
 
 motor_state = {"fwd": False, "bwd": False, "left": False, "right": False, "stop": False}
 state_lock = threading.Lock()
 last_move_time = time.time()
 
 last_heartbeat_time = time.time()  # vrijeme posljednjeg heartbeat-a
-HEARTBEAT_TIMEOUT = 0.3  # 300 ms
+HEARTBEAT_TIMEOUT = 2  # 1s
 last_seq = -1
 
 def handle_header():
@@ -39,36 +39,25 @@ def handle_header():
         return True
     return False
 
-picam = Picamera2()
-picam.configure(picam.create_video_configuration())
-picam.start()
-
-def gen():
-    while True:
-        frame = picam.capture_array()
-        _, jpeg = cv2.imencode('.jpg', frame)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' +
-               jpeg.tobytes() + b'\r\n')
-
 def set_motor(cmd, value=True):
     with state_lock:
         motor_state[cmd] = value
 
 # ---------- Fail-safe heartbeat checker ----------
+'''
 def heartbeat_loop():
     global last_heartbeat_time
     while True:
         now = time.time()
-        if now - last_heartbeat_time > HEARTBEAT_TIMEOUT:
+        #if now - last_heartbeat_time > HEARTBEAT_TIMEOUT:
             # ako je > timeout, posalji na failsafe pin signal, zaustavi sve
-            with state_lock:
-                for key in motor_state:
-                    motor_state[key] = False
-            GPIO.output(FAILSAFE, GPIO.LOW)
+            #GPIO.output(FAILSAFE, GPIO.HIGH)
+            #print("FAILSAFE - ON")
+            #GPIO.output(FAILSAFE, GPIO.LOW)
         time.sleep(0.01)
 
 threading.Thread(target=heartbeat_loop, daemon=True).start()
+'''
 
 @app.route("/heartbeat", methods=["POST"])
 def heartbeat():
