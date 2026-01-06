@@ -6,9 +6,7 @@ module motor_driver (
     input wire bwd_in,
     input wire left_in,
     input wire right_in,
-    input wire stoplight_in,
-    input wire stopsign_in,
-    input wire failsafe_in,
+    input wire stop_in,
 
     // line detectors
     input wire ld_left,
@@ -24,13 +22,13 @@ module motor_driver (
 
   always @(posedge clk) begin
     // prioritize stop
-    if (failsafe_in == 1 || stoplight_in == 1 || stopsign_in == 1) begin
+    if (stop_in == 1) begin
       state = STOP;
     end else if (fwd_in == 1) begin
       // when moving forward check for lines
-      if (ld_left == 1) begin
+      if (ld_left == 0) begin
         state = RIGHT;
-      end else if (ld_right == 1) begin
+      end else if (ld_right == 0) begin
         state = LEFT;
       end else begin
         state = FORWARD;

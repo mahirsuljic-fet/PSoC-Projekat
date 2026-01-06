@@ -32,15 +32,24 @@ module main (
     input wire ld_left,
     input wire ld_right
 );
+  localparam PS_MODE_STOP = 0, PS_MODE_BEEP = 1;
+
+  reg ps_mode_fwd = PS_MODE_BEEP;
+  reg ps_mode_bwd1 = PS_MODE_BEEP;
+  reg ps_mode_bwd2 = PS_MODE_BEEP;
+
+  wire stop_in, ps_signal_fwd, ps_signal_bwd1, ps_signal_bwd2;
+
+  assign stop_in = stopsign_in | stoplight_in | failsafe_in | ps_signal_fwd;
+  assign buzzer  = buzzer_in | ps_signal_bwd1 | ps_signal_bwd2;
+
   motor_driver md (
       .clk(clk),
       .fwd_in(fwd_in),
       .bwd_in(bwd_in),
       .left_in(left_in),
       .right_in(right_in),
-      .stoplight_in(stoplight_in),
-      .stopsign_in(stopsign_in),
-      .failsafe_in(failsafe_in),
+      .stop_in(stop_in),
       .ld_left(ld_left),
       .ld_right(ld_right),
       .m1_out(m1_out),
@@ -48,27 +57,27 @@ module main (
       .state(md_state)
   );
 
-  wire ps_buzzer_fwd, ps_buzzer_bwd1, ps_buzzer_bwd2;
-  assign buzzer = ps_buzzer_fwd | ps_buzzer_bwd1 | ps_buzzer_bwd2 | buzzer_in;
-
   parking_sensor ps_fwd (
       .clk(clk),
       .echo(echo_fwd),
       .trig(trig_fwd),
-      .signal(ps_buzzer_fwd)
+      .mode(ps_mode_fwd),
+      .signal(ps_signal_fwd)
   );
 
   parking_sensor ps_bwd1 (
       .clk(clk),
       .echo(echo_bwd1),
       .trig(trig_bwd1),
-      .signal(ps_buzzer_bwd1)
+      .mode(ps_mode_bwd1),
+      .signal(ps_signal_bwd1)
   );
 
   parking_sensor ps_bwd2 (
       .clk(clk),
       .echo(echo_bwd2),
       .trig(trig_bwd2),
-      .signal(ps_buzzer_bwd2)
+      .mode(ps_mode_bwd2),
+      .signal(ps_signal_bwd2)
   );
 endmodule

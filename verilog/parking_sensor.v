@@ -1,9 +1,11 @@
 module parking_sensor (
     input  wire clk,
+    input  wire mode,
     input  wire echo,
     output reg  trig,
     output reg  signal
 );
+  localparam PS_MODE_STOP = 0, PS_MODE_BEEP = 1;
 
   localparam CLK_FREQ = 50000000;
   localparam CYCLES_PER_CM = 2915;
@@ -11,6 +13,7 @@ module parking_sensor (
   localparam DIST_CONST = 10 * CYCLES_PER_CM;
   localparam DIST_FAST = 15 * CYCLES_PER_CM;
   localparam DIST_SLOW = 20 * CYCLES_PER_CM;
+  localparam DIST_STOP = 20 * CYCLES_PER_CM;
 
   localparam TIME_500MS = CLK_FREQ / 2;
   localparam TIME_250MS = CLK_FREQ / 4;
@@ -38,14 +41,25 @@ module parking_sensor (
     else toggle_timer <= 0;
 
     // PROXIMITY LOGIC
-    if (last_dist > DIST_SLOW || last_dist == 0) begin
-      signal <= 0;
-    end else if (last_dist > DIST_FAST) begin
-      signal <= (toggle_timer < TIME_500MS) ? 1 : 0;
-    end else if (last_dist > DIST_CONST) begin
-      signal <= (toggle_timer % (TIME_250MS * 2) < TIME_250MS) ? 1 : 0;
+    if (mode == PS_MODE_STOP) begin
+      if (last_dist > DIST_STOP || last_dist == 0) begin
+        signal <= 0;
+      end else begin
+        signal <= 1;
+      end
+    end else if (mode == PS_MODE_BEEP) begin
+      if (last_dist > DIST_SLOW || last_dist == 0) begin
+        signal <= 0;
+      end else if (last_dist > DIST_FAST) begin
+        signal <= (toggle_timer < TIME_500MS) ? 1 : 0;
+      end else if (last_dist > DIST_CONST) begin
+        signal <= (toggle_timer % (TIME_250MS * 2) < TIME_250MS) ? 1 : 0;
+      end else begin
+        signal <= 1;
+      end
     end else begin
-      signal <= 1;
+      signal <= 0;
     end
   end
 endmodule
+
