@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.robotcontrolapp.ui.components.ActionButton
 import com.example.robotcontrolapp.ui.components.ControlPad
 import com.example.robotcontrolapp.ui.theme.EmergencyRed
@@ -124,6 +125,8 @@ fun RobotControlScreen(
 
     if (uiState.showSettings) {
         SettingsDialog(
+            currentIp = uiState.currentIp,
+            currentPort = uiState.currentPort.toString(),
             onDismiss = { viewModel.toggleSettings() },
             onConnect = { ip, port ->
                 viewModel.connectToRobot(ip, port)
@@ -173,10 +176,13 @@ fun InfoWhiteBox(
 
 @Composable
 fun SettingsDialog(
+    currentIp: String,
+    currentPort: String,
     onDismiss: () -> Unit,
-    onConnect: (String, Int) -> Unit
+    onConnect: (String, Int) -> Unit,
+    viewModel: RobotViewModel = viewModel()
 ) {
-    var ipAddress by remember { mutableStateOf("192.168.1.100") }
+    var ipAddress by remember { mutableStateOf("192.168.1.132") }
     var port by remember { mutableStateOf("5000") }
 
     Dialog(onDismissRequest = onDismiss) {

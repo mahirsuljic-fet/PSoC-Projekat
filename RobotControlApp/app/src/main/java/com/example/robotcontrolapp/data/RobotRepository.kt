@@ -13,7 +13,8 @@ import retrofit2.Response
 
 class RobotRepository {
 
-    private val apiService = RetrofitClient.apiService
+    private val apiService
+        get() = RetrofitClient.apiService
 
     fun startHeartbeat(): Flow<Result<Unit>> = flow {
         while (true) {
