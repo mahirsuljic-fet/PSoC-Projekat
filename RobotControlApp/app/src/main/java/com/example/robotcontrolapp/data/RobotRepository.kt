@@ -28,7 +28,7 @@ class RobotRepository {
             } catch (e: Exception) {
                 emit(Result.failure(e))
             }
-            delay(1000)
+            delay(50)
         }
     }.flowOn(Dispatchers.IO)
 
