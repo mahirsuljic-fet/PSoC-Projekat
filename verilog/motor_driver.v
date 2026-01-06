@@ -26,9 +26,9 @@ module motor_driver (
       state = STOP;
     end else if (fwd_in == 1) begin
       // when moving forward check for lines
-      if (ld_left == 0) begin
+      if (ld_left == 1) begin
         state = RIGHT;
-      end else if (ld_right == 0) begin
+      end else if (ld_right == 1) begin
         state = LEFT;
       end else begin
         state = FORWARD;

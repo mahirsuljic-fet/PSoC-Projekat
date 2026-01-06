@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val DEFAULT_IP = "192.168.1.132"
+    private const val DEFAULT_IP = "192.168.1.103"
     private const val DEFAULT_PORT = 5000
 
     private var currentBaseUrl = "http://$DEFAULT_IP:$DEFAULT_PORT/"

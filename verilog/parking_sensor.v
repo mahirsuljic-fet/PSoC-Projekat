@@ -13,15 +13,22 @@ module parking_sensor (
   localparam DIST_CONST = 10 * CYCLES_PER_CM;
   localparam DIST_FAST = 15 * CYCLES_PER_CM;
   localparam DIST_SLOW = 20 * CYCLES_PER_CM;
-  localparam DIST_STOP = 20 * CYCLES_PER_CM;
+  localparam DIST_STOP = 30 * CYCLES_PER_CM;
 
+  localparam TIME_1S = CLK_FREQ;
   localparam TIME_500MS = CLK_FREQ / 2;
   localparam TIME_250MS = CLK_FREQ / 4;
+  localparam TIME_125MS = CLK_FREQ / 8;
+
+  localparam TIME_DETECT = TIME_125MS;
+  localparam TIME_HOLD = 2 * TIME_1S;
+  localparam TIME_COOLDOWN = 5 * TIME_1S;
 
   reg [21:0] trig_timer = 0;
   reg [21:0] echo_width = 0;
   reg [21:0] last_dist = 0;
-  reg [25:0] toggle_timer = 0;
+  reg [27:0] toggle_timer = 0;
+  reg detectable = 0;
 
   always @(posedge clk) begin
     // TRIGGER
@@ -42,10 +49,35 @@ module parking_sensor (
 
     // PROXIMITY LOGIC
     if (mode == PS_MODE_STOP) begin
-      if (last_dist > DIST_STOP || last_dist == 0) begin
-        signal <= 0;
+      if (detectable == 1) begin
+        if (last_dist > DIST_STOP || last_dist == 0) begin
+          signal <= 0;
+          toggle_timer <= 0;
+        end else begin
+          if (signal == 0) begin
+            if (toggle_timer > TIME_DETECT) begin
+              signal <= 1;
+              toggle_timer <= 0;
+            end else begin
+              toggle_timer <= toggle_timer + 1;
+            end
+          end else begin
+            if (toggle_timer > TIME_HOLD) begin
+              signal <= 0;
+              detectable <= 0;
+              toggle_timer <= 0;
+            end else begin
+              toggle_timer <= toggle_timer + 1;
+            end
+          end
+        end
       end else begin
-        signal <= 1;
+        if (toggle_timer > TIME_COOLDOWN) begin
+          detectable   <= 1;
+          toggle_timer <= 0;
+        end else begin
+          toggle_timer <= toggle_timer + 1;
+        end
       end
     end else if (mode == PS_MODE_BEEP) begin
       if (last_dist > DIST_SLOW || last_dist == 0) begin

@@ -34,14 +34,14 @@ module main (
 );
   localparam PS_MODE_STOP = 0, PS_MODE_BEEP = 1;
 
-  reg ps_mode_fwd = PS_MODE_BEEP;
+  reg ps_mode_fwd = PS_MODE_STOP;
   reg ps_mode_bwd1 = PS_MODE_BEEP;
   reg ps_mode_bwd2 = PS_MODE_BEEP;
 
   wire stop_in, ps_signal_fwd, ps_signal_bwd1, ps_signal_bwd2;
 
   assign stop_in = stopsign_in | stoplight_in | failsafe_in | ps_signal_fwd;
-  assign buzzer  = buzzer_in | ps_signal_bwd1 | ps_signal_bwd2;
+  assign buzzer  = buzzer_in | ps_signal_fwd;
 
   motor_driver md (
       .clk(clk),
