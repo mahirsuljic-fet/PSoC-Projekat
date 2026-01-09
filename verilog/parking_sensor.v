@@ -28,7 +28,7 @@ module parking_sensor (
   reg [21:0] echo_width = 0;
   reg [21:0] last_dist = 0;
   reg [27:0] toggle_timer = 0;
-  reg detectable = 0;
+  reg detectable = 1;
 
   always @(posedge clk) begin
     // TRIGGER

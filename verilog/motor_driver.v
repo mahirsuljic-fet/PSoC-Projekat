@@ -44,37 +44,42 @@ module motor_driver (
     end
   end
 
+  localparam M_FWD = 4'b1010;
+  localparam M_BWD = 4'b0101;
+  localparam M_STOP = 4'b0000;
+
   always @(state) begin
     case (state)
       FORWARD: begin
-        m1_out = 4'b0110;
-        m2_out = 4'b1001;
+        m1_out = M_FWD;
+        m2_out = M_FWD;
       end
 
       BACKWARD: begin
-        m1_out = 4'b1001;
-        m2_out = 4'b0110;
+        m1_out = M_BWD;
+        m2_out = M_BWD;
       end
 
       LEFT: begin
-        m1_out = 4'b0000;
-        m2_out = 4'b1001;
+        m1_out = M_STOP;
+        m2_out = M_FWD;
       end
 
       RIGHT: begin
-        m1_out = 4'b0110;
-        m2_out = 4'b0000;
+        m1_out = M_FWD;
+        m2_out = M_STOP;
       end
 
       STOP: begin
-        m1_out = 4'b0000;
-        m2_out = 4'b0000;
+        m1_out = M_STOP;
+        m2_out = M_STOP;
       end
 
       default: begin
-        m1_out = 4'b0000;
-        m2_out = 4'b0000;
+        m1_out = M_STOP;
+        m2_out = M_STOP;
       end
     endcase
   end
+
 endmodule
