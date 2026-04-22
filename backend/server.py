@@ -1,5 +1,5 @@
 from flask import Flask, jsonify, request
-from picamera2 import Picamera2
+# from picamera2 import Picamera2
 import RPi.GPIO as GPIO
 import time
 import threading
@@ -26,44 +26,37 @@ motor_state = {"fwd": False, "bwd": False, "left": False, "right": False, "stop"
 state_lock = threading.Lock()
 last_move_time = time.time()
 
-last_heartbeat_time = time.time()  # vrijeme posljednjeg heartbeat-a
-HEARTBEAT_TIMEOUT = 2  # 1s
+last_heartbeat_time = time.time()
+HEARTBEAT_TIMEOUT = 2
 last_seq = -1
 
 def handle_header():
     global last_seq 
-    seq = int(request.headers.get("sequence"))
+    seq_header = request.headers.get("sequence")
+    if seq_header is None:
+        return False
+    try:
+        seq = int(seq_header)
+    except (ValueError, TypeError):
+        return False
+        
     if(seq > last_seq):
         last_seq = seq
-        print(seq)
         return True
     return False
-
-def set_motor(cmd, value=True):
-    with state_lock:
-        motor_state[cmd] = value
-
-# ---------- Fail-safe heartbeat checker ----------
-'''
-def heartbeat_loop():
-    global last_heartbeat_time
-    while True:
-        now = time.time()
-        #if now - last_heartbeat_time > HEARTBEAT_TIMEOUT:
-            # ako je > timeout, posalji na failsafe pin signal, zaustavi sve
-            #GPIO.output(FAILSAFE, GPIO.HIGH)
-            #print("FAILSAFE - ON")
-            #GPIO.output(FAILSAFE, GPIO.LOW)
-        time.sleep(0.01)
-
-threading.Thread(target=heartbeat_loop, daemon=True).start()
-'''
 
 @app.route("/heartbeat", methods=["POST"])
 def heartbeat():
     global last_heartbeat_time
     last_heartbeat_time = time.time()
     return jsonify({"status": "ok"})
+
+@app.route("/reset_sequence", methods=["POST"])
+def reset_sequence():
+    global last_seq
+    last_seq = -1
+    print("Sequence reset to -1")
+    return jsonify({"status": "sequence reset"})
 
 @app.route("/forward/on")
 def forward_on():

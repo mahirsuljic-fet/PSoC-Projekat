@@ -67,11 +67,13 @@ class RobotViewModel(private val settingsManager: SettingsManager) : ViewModel()
                 isLoading = true, 
                 currentIp = ip, 
                 currentPort = port,
-                errorMessage = null
+                errorMessage = null,
+                sequence = 0 // Reset local sequence
             )
 
             try {
                 repository.updateRobotIp(ip, port)
+                repository.resetSequence() // Reset server sequence
                 settingsManager.saveConnectionDetails(ip, port)
                 startHeartbeat()
                 startStatusUpdates()

@@ -67,6 +67,11 @@ class RobotRepository {
     suspend fun stopAll(): Result<ControlResponse> {
         return executeRequest { apiService.stopAll() }
     }
+
+    suspend fun resetSequence(): Result<ControlResponse> {
+        return executeRequest { apiService.resetSequence() }
+    }
+
     suspend fun hornOn(seq: Int): Result<ControlResponse> {
         return executeRequest { apiService.hornOn(seq) }
     }

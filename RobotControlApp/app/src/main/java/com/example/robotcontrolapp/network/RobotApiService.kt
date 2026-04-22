@@ -67,4 +67,7 @@ interface RobotApiService {
 
     @GET("is_moving")
     suspend fun isMoving(): Response<RobotStatus>
+
+    @POST("reset_sequence")
+    suspend fun resetSequence(): Response<ControlResponse>
 }
