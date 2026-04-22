@@ -11,6 +11,7 @@ module motor_driver (
     // line detectors
     input wire ld_left,
     input wire ld_right,
+    input wire enable_ld,
 
     // motors (A0 A1 B0 B1)
     output reg [3:0] m1_out,  // left
@@ -23,24 +24,28 @@ module motor_driver (
   always @(posedge clk) begin
     // prioritize stop
     if (stop_in == 1) begin
-      state = STOP;
+      state <= STOP;
     end else if (fwd_in == 1) begin
-      // when moving forward check for lines
-      if (ld_left == 1) begin
-        state = RIGHT;
-      end else if (ld_right == 1) begin
-        state = LEFT;
+      if (enable_ld) begin
+        // when moving forward check for lines
+        if (ld_left == 1) begin
+          state <= RIGHT;
+        end else if (ld_right == 1) begin
+          state <= LEFT;
+        end else begin
+          state <= FORWARD;
+        end
       end else begin
-        state = FORWARD;
+        state <= FORWARD;
       end
     end else if (bwd_in == 1) begin
-      state = BACKWARD;
+      state <= BACKWARD;
     end else if (right_in == 1) begin
-      state = RIGHT;
+      state <= RIGHT;
     end else if (left_in == 1) begin
-      state = LEFT;
+      state <= LEFT;
     end else begin
-      state = STOP;
+      state <= STOP;
     end
   end
 
@@ -51,33 +56,33 @@ module motor_driver (
   always @(state) begin
     case (state)
       FORWARD: begin
-        m1_out = M_FWD;
-        m2_out = M_FWD;
+        m1_out <= M_FWD;
+        m2_out <= M_FWD;
       end
 
       BACKWARD: begin
-        m1_out = M_BWD;
-        m2_out = M_BWD;
+        m1_out <= M_BWD;
+        m2_out <= M_BWD;
       end
 
       LEFT: begin
-        m1_out = M_STOP;
-        m2_out = M_FWD;
+        m1_out <= M_STOP;
+        m2_out <= M_FWD;
       end
 
       RIGHT: begin
-        m1_out = M_FWD;
-        m2_out = M_STOP;
+        m1_out <= M_FWD;
+        m2_out <= M_STOP;
       end
 
       STOP: begin
-        m1_out = M_STOP;
-        m2_out = M_STOP;
+        m1_out <= M_STOP;
+        m2_out <= M_STOP;
       end
 
       default: begin
-        m1_out = M_STOP;
-        m2_out = M_STOP;
+        m1_out <= M_STOP;
+        m2_out <= M_STOP;
       end
     endcase
   end

@@ -3,6 +3,7 @@ package com.example.robotcontrolapp.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.robotcontrolapp.data.RobotRepository
+import com.example.robotcontrolapp.data.SettingsManager
 import com.example.robotcontrolapp.data.models.Direction
 import com.example.robotcontrolapp.data.models.RobotStatus
 import kotlinx.coroutines.Job
@@ -26,16 +27,26 @@ data class RobotUiState(
     val isLoading: Boolean = false,
     val showSettings: Boolean = false,
     val stopReason: StopReason = StopReason.NONE,
-    val currentIp: String = "192.168.1.132  ",
+    val currentIp: String = "192.168.1.132",
     val currentPort: Int = 5000,
     val sequence: Int = 0
 )
 
-class RobotViewModel : ViewModel() {
+class RobotViewModel(private val settingsManager: SettingsManager) : ViewModel() {
 
     private val repository = RobotRepository()
-    private val _uiState = MutableStateFlow(RobotUiState())
+    private val _uiState = MutableStateFlow(
+        RobotUiState(
+            currentIp = settingsManager.getLastIp(),
+            currentPort = settingsManager.getLastPort()
+        )
+    )
     val uiState: StateFlow<RobotUiState> = _uiState.asStateFlow()
+
+    init {
+        // Initialize Retrofit with saved values
+        repository.updateRobotIp(_uiState.value.currentIp, _uiState.value.currentPort)
+    }
 
     private var statusJob: Job? = null
     private var heartbeatJob: Job? = null
@@ -52,23 +63,24 @@ class RobotViewModel : ViewModel() {
 
     fun connectToRobot(ip: String, port: Int = 5000) {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true, currentIp = ip, currentPort = port)
+            _uiState.value = _uiState.value.copy(
+                isLoading = true, 
+                currentIp = ip, 
+                currentPort = port,
+                errorMessage = null
+            )
 
             try {
                 repository.updateRobotIp(ip, port)
+                settingsManager.saveConnectionDetails(ip, port)
                 startHeartbeat()
                 startStatusUpdates()
-                _uiState.value = _uiState.value.copy(
-                    isConnected = true,
-                    isLoading = false,
-                    errorMessage = null
-                )
+                _uiState.value = _uiState.value.copy(isLoading = false)
             } catch (e: Exception) {
                 setConnectionError()
             }
         }
     }
-
     fun sendCommand(direction: Direction) {
         viewModelScope.launch {
             val seq = _uiState.updateAndGet {

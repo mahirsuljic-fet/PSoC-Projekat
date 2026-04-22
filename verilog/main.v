@@ -19,10 +19,10 @@ module main (
     // parking sensors
     input  wire echo_fwd,
     output wire trig_fwd,
-    input  wire echo_bwd1,
-    output wire trig_bwd1,
-    input  wire echo_bwd2,
-    output wire trig_bwd2,
+    // input  wire echo_bwd1,
+    // output wire trig_bwd1,
+    // input  wire echo_bwd2,
+    // output wire trig_bwd2,
 
     // buzzer
     input  wire buzzer_in,
@@ -30,18 +30,22 @@ module main (
 
     // line detectors
     input wire ld_left,
-    input wire ld_right
+    input wire ld_right,
+
+    // enable pins
+    input wire enable_ld,
+    input wire enable_ps,
+    input wire ps_sound,
+    input wire ps_mode
 );
   localparam PS_MODE_STOP = 0, PS_MODE_BEEP = 1;
 
-  reg ps_mode_fwd = PS_MODE_STOP;
-  reg ps_mode_bwd1 = PS_MODE_BEEP;
-  reg ps_mode_bwd2 = PS_MODE_BEEP;
+  assign ps_mode_fwd = ps_mode == 1 ? PS_MODE_STOP : PS_MODE_BEEP;
+  wire stop_in, ps_signal_fwd;
 
-  wire stop_in, ps_signal_fwd, ps_signal_bwd1, ps_signal_bwd2;
-
-  assign stop_in = stopsign_in | stoplight_in | failsafe_in | ps_signal_fwd;
-  assign buzzer  = buzzer_in | ps_signal_fwd;
+  assign stop_in = stopsign_in | stoplight_in | failsafe_in
+                 | (ps_signal_fwd & (ps_mode_fwd == PS_MODE_STOP));
+  assign buzzer = buzzer_in | (ps_signal_fwd & (ps_sound == 1 || ps_mode_fwd == PS_MODE_BEEP));
 
   motor_driver md (
       .clk(clk),
@@ -54,7 +58,8 @@ module main (
       .ld_right(ld_right),
       .m1_out(m1_out),
       .m2_out(m2_out),
-      .state(md_state)
+      .state(md_state),
+      .enable_ld(enable_ld)
   );
 
   parking_sensor ps_fwd (
@@ -62,22 +67,7 @@ module main (
       .echo(echo_fwd),
       .trig(trig_fwd),
       .mode(ps_mode_fwd),
-      .signal(ps_signal_fwd)
-  );
-
-  parking_sensor ps_bwd1 (
-      .clk(clk),
-      .echo(echo_bwd1),
-      .trig(trig_bwd1),
-      .mode(ps_mode_bwd1),
-      .signal(ps_signal_bwd1)
-  );
-
-  parking_sensor ps_bwd2 (
-      .clk(clk),
-      .echo(echo_bwd2),
-      .trig(trig_bwd2),
-      .mode(ps_mode_bwd2),
-      .signal(ps_signal_bwd2)
+      .signal(ps_signal_fwd),
+      .enable(enable_ps)
   );
 endmodule

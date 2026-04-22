@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    private const val DEFAULT_IP = "192.168.1.100"
+    private const val DEFAULT_IP = "192.168.1.132"
     private const val DEFAULT_PORT = 5000
 
     private var currentBaseUrl = "http://$DEFAULT_IP:$DEFAULT_PORT/"
@@ -33,12 +33,16 @@ object RetrofitClient {
     }
 
     private var retrofit = createRetrofit(currentBaseUrl)
-
-    val apiService: RobotApiService
-        get() = retrofit.create(RobotApiService::class.java)
+    
+    var apiService: RobotApiService = retrofit.create(RobotApiService::class.java)
+        private set
 
     fun updateBaseUrl(ip: String, port: Int = DEFAULT_PORT) {
-        currentBaseUrl = "http://$ip:$port/"
+        val newUrl = "http://$ip:$port/"
+        if (newUrl == currentBaseUrl) return
+        
+        currentBaseUrl = newUrl
         retrofit = createRetrofit(currentBaseUrl)
+        apiService = retrofit.create(RobotApiService::class.java)
     }
 }

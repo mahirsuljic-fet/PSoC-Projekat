@@ -109,6 +109,6 @@ class RobotRepository {
     }
 
     fun updateRobotIp(ip: String, port: Int = 5000) {
-        RetrofitClient.updateBaseUrl(ip, port)
+        RetrofitClient.updateBaseUrl(ip.trim(), port)
     }
 }

@@ -14,10 +14,26 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.robotcontrolapp.ui.theme.RobotControlAppTheme
 import com.example.robotcontrolapp.viewmodel.RobotViewModel
 
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import com.example.robotcontrolapp.data.SettingsManager
+
+class RobotViewModelFactory(private val settingsManager: SettingsManager) : ViewModelProvider.Factory {
+    override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        if (modelClass.isAssignableFrom(RobotViewModel::class.java)) {
+            @Suppress("UNCHECKED_CAST")
+            return RobotViewModel(settingsManager) as T
+        }
+        throw IllegalArgumentException("Unknown ViewModel class")
+    }
+}
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        val settingsManager = SettingsManager(applicationContext)
 
         setContent {
             RobotControlAppTheme {
@@ -28,7 +44,9 @@ class MainActivity : ComponentActivity() {
                             .padding(innerPadding),
                         color = MaterialTheme.colorScheme.background
                     ) {
-                        val viewModel: RobotViewModel = viewModel()
+                        val viewModel: RobotViewModel = viewModel(
+                            factory = RobotViewModelFactory(settingsManager)
+                        )
                         RobotControlScreen(viewModel = viewModel)
                     }
                 }

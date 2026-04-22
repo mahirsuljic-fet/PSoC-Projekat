@@ -3,7 +3,8 @@ module parking_sensor (
     input  wire mode,
     input  wire echo,
     output reg  trig,
-    output reg  signal
+    output reg  signal,
+    input  wire enable
 );
   localparam PS_MODE_STOP = 0, PS_MODE_BEEP = 1;
 
@@ -31,66 +32,76 @@ module parking_sensor (
   reg detectable = 1;
 
   always @(posedge clk) begin
-    // TRIGGER
-    if (trig_timer < 4000000) trig_timer <= trig_timer + 1;
-    else trig_timer <= 0;
-    trig <= (trig_timer > 0 && trig_timer < 500);
+    if (enable == 0) begin
+      signal <= 0;
+    end else begin
+      // TRIGGER
+      if (trig_timer < 4000000) trig_timer <= trig_timer + 1;
+      else trig_timer <= 0;
+      trig <= (trig_timer > 0 && trig_timer < 500);
 
-    // ECHO
-    if (echo == 1) echo_width <= echo_width + 1;
-    else if (echo == 0 && echo_width > 0) begin
-      last_dist  <= echo_width;
-      echo_width <= 0;
-    end
+      // ECHO
+      if (echo == 1) echo_width <= echo_width + 1;
+      else if (echo == 0 && echo_width > 0) begin
+        last_dist  <= echo_width;
+        echo_width <= 0;
+      end
 
-    // TOGGLE TIMER
-    if (toggle_timer < CLK_FREQ) toggle_timer <= toggle_timer + 1;
-    else toggle_timer <= 0;
+      // TOGGLE TIMER
+      if (toggle_timer < CLK_FREQ) toggle_timer <= toggle_timer + 1;
+      else toggle_timer <= 0;
 
-    // PROXIMITY LOGIC
-    if (mode == PS_MODE_STOP) begin
-      if (detectable == 1) begin
-        if (last_dist > DIST_STOP || last_dist == 0) begin
-          signal <= 0;
-          toggle_timer <= 0;
-        end else begin
-          if (signal == 0) begin
-            if (toggle_timer > TIME_DETECT) begin
-              signal <= 1;
-              toggle_timer <= 0;
-            end else begin
-              toggle_timer <= toggle_timer + 1;
-            end
+      // PROXIMITY LOGIC
+      if (mode == PS_MODE_STOP) begin
+        if (detectable == 1) begin
+          if (last_dist > DIST_STOP || last_dist == 0) begin
+            signal <= 0;
+            toggle_timer <= 0;
           end else begin
-            if (toggle_timer > TIME_HOLD) begin
-              signal <= 0;
-              detectable <= 0;
-              toggle_timer <= 0;
+            if (signal == 0) begin
+              if (toggle_timer > TIME_DETECT) begin
+                signal <= 1;
+                toggle_timer <= 0;
+              end else begin
+                toggle_timer <= toggle_timer + 1;
+              end
             end else begin
-              toggle_timer <= toggle_timer + 1;
+              if (toggle_timer > TIME_HOLD) begin
+                signal <= 0;
+                detectable <= 0;
+                toggle_timer <= 0;
+              end else begin
+                toggle_timer <= toggle_timer + 1;
+              end
             end
           end
-        end
-      end else begin
-        if (toggle_timer > TIME_COOLDOWN) begin
-          detectable   <= 1;
-          toggle_timer <= 0;
         end else begin
-          toggle_timer <= toggle_timer + 1;
+          if (toggle_timer > TIME_COOLDOWN) begin
+            detectable   <= 1;
+            toggle_timer <= 0;
+          end else begin
+            toggle_timer <= toggle_timer + 1;
+          end
         end
-      end
-    end else if (mode == PS_MODE_BEEP) begin
-      if (last_dist > DIST_SLOW || last_dist == 0) begin
-        signal <= 0;
-      end else if (last_dist > DIST_FAST) begin
-        signal <= (toggle_timer < TIME_500MS) ? 1 : 0;
-      end else if (last_dist > DIST_CONST) begin
-        signal <= (toggle_timer % (TIME_250MS * 2) < TIME_250MS) ? 1 : 0;
+      end else if (mode == PS_MODE_BEEP) begin
+        if (last_dist > DIST_SLOW || last_dist == 0) begin
+          signal <= 0;
+        end else if (last_dist > DIST_FAST) begin
+          signal <= (toggle_timer < TIME_500MS) ? 1 : 0;
+        end else if (last_dist > DIST_CONST) begin
+          if (toggle_timer < TIME_250MS) begin
+            signal <= 1;
+          end else if (toggle_timer >= TIME_500MS && toggle_timer < (TIME_500MS + TIME_250MS)) begin
+            signal <= 1;
+          end else begin
+            signal <= 0;
+          end
+        end else begin
+          signal <= 1;
+        end
       end else begin
-        signal <= 1;
+        signal <= 0;
       end
-    end else begin
-      signal <= 0;
     end
   end
 endmodule

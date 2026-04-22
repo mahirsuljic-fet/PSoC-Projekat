@@ -182,8 +182,8 @@ fun SettingsDialog(
     onConnect: (String, Int) -> Unit,
     viewModel: RobotViewModel = viewModel()
 ) {
-    var ipAddress by remember { mutableStateOf("192.168.1.132") }
-    var port by remember { mutableStateOf("5000") }
+    var ipAddress by remember { mutableStateOf(currentIp) }
+    var port by remember { mutableStateOf(currentPort) }
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
